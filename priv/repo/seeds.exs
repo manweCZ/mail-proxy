@@ -10,7 +10,7 @@ Repo.insert!(%Account{
   smtp_port: 587,
   smtp_user: "user@example.com",
   smtp_password: "secret",
-  rate_limit_per_second: "0.5",
+  rate_limit_per_second: 0.5,
   webhook_url: nil
 })
 

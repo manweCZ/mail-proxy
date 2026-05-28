@@ -12,6 +12,7 @@ defmodule MailProxyWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug MailProxyWeb.Plugs.Authorize
   end
 
   scope "/", MailProxyWeb do
@@ -21,9 +22,11 @@ defmodule MailProxyWeb.Router do
   end
 
   # Other scopes may use custom stacks.
-  # scope "/api", MailProxyWeb do
-  #   pipe_through :api
-  # end
+  scope "/api/v1", MailProxyWeb do
+    pipe_through :api
+
+    post "/email", ApiMailController, :queue
+  end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:mail_proxy, :dev_routes) do
