@@ -12,9 +12,9 @@ defmodule MailProxy.Application do
       MailProxy.Repo,
       {DNSCluster, query: Application.get_env(:mail_proxy, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: MailProxy.PubSub},
-      # Start a worker by calling: MailProxy.Worker.start_link(arg)
-      # {MailProxy.Worker, arg},
-      # Start to serve requests, typically the last entry
+      {Registry, keys: :unique, name: MailProxy.ProxyRegistry},
+      {DynamicSupervisor, name: MailProxy.ProxySupervisor, strategy: :one_for_one},
+      {Task.Supervisor, name: MailProxy.WorkerSupervisor},
       MailProxyWeb.Endpoint
     ]
 
