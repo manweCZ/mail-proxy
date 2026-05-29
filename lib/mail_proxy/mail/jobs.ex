@@ -4,17 +4,25 @@ defmodule MailProxy.Mail.Jobs do
   alias MailProxy.Mail.Job
   alias MailProxy.Repo
 
+  @max_attempts 3
+
   @doc """
-  Fetches up to `limit` pending jobs for the given account, atomically marking
-  them as `sending` to prevent double-processing across ticks or restarts.
+  Fetches up to `limit` pending jobs for the given account that are ready to run
+  (no scheduled_at, or scheduled_at is in the past), atomically marking them as
+  `sending` to prevent double-processing across ticks or restarts.
   """
   @spec fetch_pending(integer(), integer()) :: [Job.t()]
   def fetch_pending(account_id, limit) do
+    now = DateTime.utc_now()
+
     {:ok, jobs} =
       Repo.transaction(fn ->
         jobs =
           from(j in Job,
-            where: j.account_id == ^account_id and j.status == "pending",
+            where:
+              j.account_id == ^account_id and
+              j.status == "pending" and
+              (is_nil(j.scheduled_at) or j.scheduled_at <= ^now),
             order_by: [asc: j.inserted_at],
             limit: ^limit,
             lock: "FOR UPDATE SKIP LOCKED"
@@ -31,6 +39,37 @@ defmodule MailProxy.Mail.Jobs do
 
     jobs
   end
+
+  @spec mark_sent(Job.t()) :: Job.t()
+  def mark_sent(%Job{} = job) do
+    job
+    |> Job.status_transition_changeset("sent", %{sent_at: DateTime.utc_now()})
+    |> Repo.update!()
+  end
+
+  @spec mark_failed(Job.t(), String.t(), integer()) :: Job.t()
+  def mark_failed(%Job{} = job, reason, attempts) do
+    job
+    |> Job.status_transition_changeset("failed", %{last_error: reason, attempts: attempts})
+    |> Repo.update!()
+  end
+
+  @spec reschedule(Job.t(), String.t(), integer()) :: Job.t()
+  def reschedule(%Job{} = job, reason, attempts) do
+    backoff_secs = trunc(:math.pow(2, attempts)) * 60
+    scheduled_at = DateTime.add(DateTime.utc_now(), backoff_secs, :second)
+
+    job
+    |> Job.status_transition_changeset("pending", %{
+      last_error: reason,
+      attempts: attempts,
+      scheduled_at: scheduled_at
+    })
+    |> Repo.update!()
+  end
+
+  @spec max_attempts() :: integer()
+  def max_attempts, do: @max_attempts
 
   @spec reset_to_pending(integer()) :: :ok
   def reset_to_pending(job_id) do

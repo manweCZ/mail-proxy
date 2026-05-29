@@ -3,6 +3,7 @@ defmodule MailProxy.ProxyServer do
 
   alias MailProxy.ClientSettings
   alias MailProxy.Mail.Jobs
+  alias MailProxy.Mail.Sender
 
   @tick_rate 1000
 
@@ -48,6 +49,11 @@ defmodule MailProxy.ProxyServer do
     GenServer.cast(via(account_id), :job_enqueued)
   end
 
+  @spec job_done(integer(), integer()) :: :ok
+  def job_done(account_id, job_id) do
+    GenServer.cast(via(account_id), {:job_done, job_id})
+  end
+
   defp via(account_id) do
     {:via, Registry, {MailProxy.ProxyRegistry, {__MODULE__, account_id}}}
   end
@@ -78,6 +84,10 @@ defmodule MailProxy.ProxyServer do
 
   @impl true
   def handle_cast(:job_enqueued, state) do
+    {:noreply, drain_queue(state)}
+  end
+
+  def handle_cast({:job_done, _job_id}, state) do
     {:noreply, drain_queue(state)}
   end
 
@@ -122,7 +132,7 @@ defmodule MailProxy.ProxyServer do
       new_tasks =
         Enum.reduce(jobs, state.tasks, fn job, tasks ->
           {:ok, pid} = Task.Supervisor.start_child(MailProxy.WorkerSupervisor, fn ->
-            IO.puts("Sending email job_id=#{job.id} to=#{Enum.join(job.to, ",")}")
+            Sender.send(job)
           end)
           ref = Process.monitor(pid)
           Map.put(tasks, ref, job.id)

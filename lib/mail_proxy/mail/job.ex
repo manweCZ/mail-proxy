@@ -37,7 +37,7 @@ defmodule MailProxy.Mail.Job do
 
   def status_transition_changeset(job, new_status, extra \\ %{}) do
     job
-    |> cast(Map.put(extra, :status, new_status), [:status, :last_error, :sent_at, :attempts])
+    |> cast(Map.put(extra, :status, new_status), [:status, :last_error, :sent_at, :attempts, :scheduled_at])
     |> validate_inclusion(:status, @statuses)
   end
 end
