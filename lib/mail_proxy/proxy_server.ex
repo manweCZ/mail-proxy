@@ -14,7 +14,8 @@ defmodule MailProxy.ProxyServer do
     :client_settings,
     :current_tokens,
     :max_tokens,
-    :refill_rate
+    :refill_rate,
+    tasks: %{}
   ]
 
   ## Types
@@ -91,6 +92,16 @@ defmodule MailProxy.ProxyServer do
     {:noreply, state}
   end
 
+  def handle_info({:DOWN, ref, :process, _pid, reason}, state) do
+    {job_id, tasks} = Map.pop(state.tasks, ref)
+
+    if job_id && reason != :normal do
+      Jobs.reset_to_pending(job_id)
+    end
+
+    {:noreply, %{state | tasks: tasks}}
+  end
+
   def handle_info(_msg, state) do
     {:noreply, state}
   end
@@ -102,18 +113,22 @@ defmodule MailProxy.ProxyServer do
   end
 
   defp drain_queue(%__MODULE__{} = state) do
+    Jobs.reset_stuck_sending(state.client_settings.account_id)
     slots = floor(state.current_tokens)
     IO.puts("#{me()}: #{state.current_tokens} / #{state.max_tokens} / #{state.refill_rate}")
     if slots >= 1 do
       jobs = Jobs.fetch_pending(state.client_settings.account_id, slots)
 
-      Enum.each(jobs, fn job ->
-        Task.Supervisor.start_child(MailProxy.WorkerSupervisor, fn ->
-          IO.puts("Sending email job_id=#{job.id} to=#{Enum.join(job.to, ",")}")
+      new_tasks =
+        Enum.reduce(jobs, state.tasks, fn job, tasks ->
+          {:ok, pid} = Task.Supervisor.start_child(MailProxy.WorkerSupervisor, fn ->
+            IO.puts("Sending email job_id=#{job.id} to=#{Enum.join(job.to, ",")}")
+          end)
+          ref = Process.monitor(pid)
+          Map.put(tasks, ref, job.id)
         end)
-      end)
 
-      %{state | current_tokens: state.current_tokens - length(jobs)}
+      %{state | current_tokens: state.current_tokens - length(jobs), tasks: new_tasks}
     else
       state
     end

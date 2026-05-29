@@ -31,4 +31,28 @@ defmodule MailProxy.Mail.Jobs do
 
     jobs
   end
+
+  @spec reset_to_pending(integer()) :: :ok
+  def reset_to_pending(job_id) do
+    from(j in Job, where: j.id == ^job_id and j.status == "sending")
+    |> Repo.update_all(set: [status: "pending"])
+
+    :ok
+  end
+
+  @spec reset_stuck_sending(integer(), integer()) :: non_neg_integer()
+  def reset_stuck_sending(account_id, older_than_secs \\ 300) do
+    cutoff = DateTime.add(DateTime.utc_now(), -older_than_secs, :second)
+
+    {count, _} =
+      from(j in Job,
+        where:
+          j.account_id == ^account_id and
+          j.status == "sending" and
+          j.updated_at < ^cutoff
+      )
+      |> Repo.update_all(set: [status: "pending"])
+
+    count
+  end
 end
