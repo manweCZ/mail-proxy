@@ -1,1 +1,218 @@
-/* This file is for your main application CSS */
+/* ─── Reset / Base ─────────────────────────────────────────────────── */
+
+body {
+  background: #f8fafc;
+  color: #1e293b;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  margin: 0;
+}
+
+/* ─── Header ────────────────────────────────────────────────────────── */
+
+.app-header {
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 14px 24px;
+}
+
+.app-header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.app-header a {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.app-header img {
+  height: 30px;
+}
+
+/* ─── Main content ──────────────────────────────────────────────────── */
+
+.app-main {
+  padding: 36px 24px 60px;
+}
+
+.app-main-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ─── Page heading ──────────────────────────────────────────────────── */
+
+.page-heading {
+  margin-bottom: 28px;
+}
+
+.page-heading h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.page-heading p {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  margin: 5px 0 0;
+}
+
+/* ─── Account grid ──────────────────────────────────────────────────── */
+
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+/* ─── Account card ──────────────────────────────────────────────────── */
+
+.account-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Card header */
+
+.card-header {
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.card-header h3 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+/* Stats row */
+
+.card-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.stat-item {
+  padding: 16px 10px;
+  text-align: center;
+}
+
+.stat-item + .stat-item {
+  border-left: 1px solid #f1f5f9;
+}
+
+.stat-number {
+  font-size: 1.625rem;
+  font-weight: 700;
+  line-height: 1;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.stat-number.sent    { color: #10b981; }
+.stat-number.failed  { color: #ef4444; }
+.stat-number.pending { color: #f59e0b; }
+
+.stat-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #94a3b8;
+  margin-top: 5px;
+}
+
+/* Recent jobs section */
+
+.card-jobs {
+  flex: 1;
+}
+
+.jobs-title {
+  padding: 14px 20px 4px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.jobs-empty {
+  padding: 10px 20px 18px;
+  font-size: 0.875rem;
+  color: #cbd5e1;
+  margin: 0;
+}
+
+.jobs-list {
+  list-style: none;
+  padding: 4px 0 12px;
+  margin: 0;
+}
+
+.job-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 20px;
+  transition: background 0.12s ease;
+}
+
+.job-item:hover {
+  background: #f8fafc;
+}
+
+.job-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.job-dot.sent    { background: #10b981; }
+.job-dot.failed  { background: #ef4444; }
+.job-dot.pending { background: #fbbf24; }
+.job-dot.sending { background: #3b82f6; }
+
+.job-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.job-recipient {
+  font-size: 0.8125rem;
+  color: #475569;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.job-subject {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.job-time {
+  font-size: 0.75rem;
+  color: #cbd5e1;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}

@@ -2,6 +2,7 @@ defmodule MailProxy.Mail.Sender do
   import Swoosh.Email
 
   alias MailProxy.Accounts.Account
+  alias MailProxy.Mail.Attachment
   alias MailProxy.Mail.Job
   alias MailProxy.Mail.Jobs
   alias MailProxy.Mailer
@@ -10,7 +11,8 @@ defmodule MailProxy.Mail.Sender do
 
   @spec send(Job.t()) :: :ok | {:error, term()}
   def send(%Job{} = job) do
-    %{account: account} = Repo.preload(job, :account)
+    job = Repo.preload(job, [:account, :attachments])
+    account = job.account
 
     try do
       do_send(job, account)
@@ -30,6 +32,7 @@ defmodule MailProxy.Mail.Sender do
       |> bcc(job.bcc)
       |> subject(job.subject)
       |> html_body(job.body)
+      |> add_attachments(job.attachments)
 
     case Mailer.deliver(email, smtp_config(account)) do
       {:ok, _} ->
@@ -65,6 +68,23 @@ defmodule MailProxy.Mail.Sender do
         attempts: attempts
       })
     end)
+  end
+
+  defp add_attachments(email, []), do: email
+  defp add_attachments(email, attachments) do
+    Enum.reduce(attachments, email, fn att, acc ->
+      attachment(acc, build_swoosh_attachment(att))
+    end)
+  end
+
+  defp build_swoosh_attachment(%Attachment{data: data, desired_filename: name, content_type: ct})
+       when not is_nil(data) do
+    Swoosh.Attachment.new({:data, data}, filename: name, content_type: ct)
+  end
+
+  defp build_swoosh_attachment(%Attachment{url: url, desired_filename: name, content_type: ct}) do
+    binary = Req.get!(url).body
+    Swoosh.Attachment.new({:data, binary}, filename: name, content_type: ct)
   end
 
   defp smtp_config(account) do

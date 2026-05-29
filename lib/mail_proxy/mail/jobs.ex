@@ -1,6 +1,7 @@
 defmodule MailProxy.Mail.Jobs do
   import Ecto.Query
 
+  alias MailProxy.Mail.Attachment
   alias MailProxy.Mail.Job
   alias MailProxy.Repo
 
@@ -42,16 +43,20 @@ defmodule MailProxy.Mail.Jobs do
 
   @spec mark_sent(Job.t()) :: Job.t()
   def mark_sent(%Job{} = job) do
-    job
-    |> Job.status_transition_changeset("sent", %{sent_at: DateTime.utc_now()})
-    |> Repo.update!()
+    updated = job
+      |> Job.status_transition_changeset("sent", %{sent_at: DateTime.utc_now()})
+      |> Repo.update!()
+    clear_attachment_data(job.id)
+    updated
   end
 
   @spec mark_failed(Job.t(), String.t(), integer()) :: Job.t()
   def mark_failed(%Job{} = job, reason, attempts) do
-    job
-    |> Job.status_transition_changeset("failed", %{last_error: reason, attempts: attempts})
-    |> Repo.update!()
+    updated = job
+      |> Job.status_transition_changeset("failed", %{last_error: reason, attempts: attempts})
+      |> Repo.update!()
+    clear_attachment_data(job.id)
+    updated
   end
 
   @spec reschedule(Job.t(), String.t(), integer()) :: Job.t()
@@ -77,6 +82,11 @@ defmodule MailProxy.Mail.Jobs do
     |> Repo.update_all(set: [status: "pending"])
 
     :ok
+  end
+
+  defp clear_attachment_data(job_id) do
+    from(a in Attachment, where: a.job_id == ^job_id)
+    |> Repo.update_all(set: [data: nil])
   end
 
   @spec reset_stuck_sending(integer(), integer()) :: non_neg_integer()
