@@ -1,0 +1,2 @@
+- [ ] finish attachments
+- [ ] allow to specifying "From" name not only email address
