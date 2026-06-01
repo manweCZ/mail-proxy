@@ -19,10 +19,6 @@ defmodule MailProxyWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
-
-    live_session :dashboard do
-      live "/dashboard", DashboardLive
-    end
   end
 
   # Other scopes may use custom stacks.
@@ -48,7 +44,11 @@ defmodule MailProxyWeb.Router do
   scope "/admin" do
     pipe_through [:browser, :admins_only]
 
-    live_dashboard "/dashboard", metrics: MailProxyWeb.Telemetry
+    live_session :dashboard do
+      live "/dashboard", MailProxyWeb.DashboardLive
+    end
+
+    live_dashboard "/phx-dashboard", metrics: MailProxyWeb.Telemetry
   end
 
   if Application.compile_env(:mail_proxy, :dev_routes) do
