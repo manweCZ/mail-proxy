@@ -65,7 +65,12 @@ defmodule MailProxyWeb.DashboardLive do
                         <span class="job-recipient">{Enum.at(job.to, 0)}</span>
                         <span class="job-subject">{String.slice(job.subject || "", 0, 50)}</span>
                       </div>
-                      <span class="job-time">{Calendar.strftime(job.inserted_at, "%d %b %H:%M")}</span>
+                      <span
+                        class="job-time"
+                        id={"time-#{job.id}"}
+                        phx-hook=".LocalTime"
+                        data-utc={NaiveDateTime.to_iso8601(job.inserted_at) <> "Z"}
+                      >{Calendar.strftime(job.inserted_at, "%d %b %H:%M")} UTC</span>
                     </li>
                   <% end %>
                 </ul>
@@ -75,6 +80,16 @@ defmodule MailProxyWeb.DashboardLive do
         <% end %>
       </div>
     </Layouts.app>
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".LocalTime">
+      export default {
+        mounted()  { this.format() },
+        updated()  { this.format() },
+        format() {
+          const d = new Date(this.el.dataset.utc)
+          this.el.textContent = d.toLocaleString([], {day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"})
+        }
+      }
+    </script>
     """
   end
 
