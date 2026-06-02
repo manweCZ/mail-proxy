@@ -68,7 +68,7 @@ defmodule MailProxyWeb.DashboardLive do
                       <span
                         class="job-time"
                         id={"time-#{job.id}"}
-                        phx-hook=".LocalTime"
+                        phx-hook="LocalTime"
                         data-utc={NaiveDateTime.to_iso8601(job.inserted_at) <> "Z"}
                       >{Calendar.strftime(job.inserted_at, "%d %b %H:%M")} UTC</span>
                     </li>
@@ -80,16 +80,6 @@ defmodule MailProxyWeb.DashboardLive do
         <% end %>
       </div>
     </Layouts.app>
-    <script :type={Phoenix.LiveView.ColocatedHook} name=".LocalTime">
-      export default {
-        mounted()  { this.format() },
-        updated()  { this.format() },
-        format() {
-          const d = new Date(this.el.dataset.utc)
-          this.el.textContent = d.toLocaleString([], {day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"})
-        }
-      }
-    </script>
     """
   end
 
