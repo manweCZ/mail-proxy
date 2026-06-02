@@ -5,7 +5,7 @@ Hooks.LocalTime = {
   updated()  { this.format() },
   format() {
     const d = new Date(this.el.dataset.utc)
-    this.el.textContent = d.toLocaleString([], {day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"})
+    this.el.textContent = d.toLocaleString([], {day: "2-digit", month: "short", hour: "numeric", minute: "2-digit"})
   }
 }
 
