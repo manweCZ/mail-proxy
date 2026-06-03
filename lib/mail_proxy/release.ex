@@ -1,7 +1,6 @@
 defmodule MailProxy.Release do
   def migrate do
-    {:ok, _} = Application.ensure_all_started(:mail_proxy)
-    path = Application.app_dir(:mail_proxy, "priv/repo/migrations")
-    Ecto.Migrator.run(MailProxy.Repo, path, :up, all: true)
+    Application.load(:mail_proxy)
+    {:ok, _, _} = Ecto.Migrator.with_repo(MailProxy.Repo, &Ecto.Migrator.run(&1, :up, all: true))
   end
 end
