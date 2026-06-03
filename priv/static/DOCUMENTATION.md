@@ -46,6 +46,7 @@ Queue an email for delivery. The API returns immediately with a job ID; delivery
 | `cc` | array of strings | No | CC recipients |
 | `bcc` | array of strings | No | BCC recipients |
 | `attachments` | array of objects | No | See attachment structure below |
+| `webhook_params` | object | No | Arbitrary key-value pairs echoed back in the webhook payload; use this to correlate the callback with your own identifiers |
 
 #### Attachment Object
 
@@ -123,11 +124,17 @@ If the account is configured with a `webhook_url`, the API will POST a JSON payl
   "job_id": 123,
   "status": "sent",
   "to": ["recipient@example.com"],
-  "attempts": 1
+  "attempts": 1,
+  "params": {
+    "order_id": "ORD-9981",
+    "customer_ref": "abc123"
+  }
 }
 ```
 
 `status` is either `"sent"` or `"failed"`.
+
+`params` contains whatever object was passed as `webhook_params` when the job was created. It is omitted from the payload if no `webhook_params` were provided.
 
 ---
 
@@ -223,6 +230,26 @@ $payload = [
     ],
 ];
 ```
+
+---
+
+### Send with webhook params for callback correlation
+
+```php
+<?php
+
+$payload = [
+    'to'      => ['recipient@example.com'],
+    'subject' => 'Your order confirmation',
+    'body'    => '<p>Thank you for your order.</p>',
+    'webhook_params' => [
+        'order_id'     => 'ORD-9981',
+        'customer_ref' => 'abc123',
+    ],
+];
+```
+
+When the job finishes, your `webhook_url` will receive a `params` object with those values, allowing you to match the callback to your internal records without storing the `job_id` yourself.
 
 ---
 

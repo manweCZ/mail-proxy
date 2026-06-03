@@ -41,14 +41,26 @@ defmodule MailProxyWeb.Router do
     )
   end
 
-  scope "/admin" do
-    pipe_through [:browser, :admins_only]
+  if Application.compile_env(:mail_proxy, :dev_routes) do
+    scope "/admin" do
+      pipe_through [:browser]
 
-    live_session :dashboard do
-      live "/dashboard", MailProxyWeb.DashboardLive
+      live_session :dashboard do
+        live "/dashboard", MailProxyWeb.DashboardLive
+      end
+
+      live_dashboard "/phx-dashboard", metrics: MailProxyWeb.Telemetry
     end
+  else
+    scope "/admin" do
+      pipe_through [:browser, :admins_only]
 
-    live_dashboard "/phx-dashboard", metrics: MailProxyWeb.Telemetry
+      live_session :dashboard do
+        live "/dashboard", MailProxyWeb.DashboardLive
+      end
+
+      live_dashboard "/phx-dashboard", metrics: MailProxyWeb.Telemetry
+    end
   end
 
   if Application.compile_env(:mail_proxy, :dev_routes) do

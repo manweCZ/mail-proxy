@@ -59,13 +59,14 @@ defmodule MailProxy.Mail.Sender do
   end
 
   defp fire_webhook(%Account{webhook_url: nil}, _job, _status, _attempts), do: :ok
-  defp fire_webhook(%Account{webhook_url: url}, job, status, attempts) do
+  defp fire_webhook(%Account{webhook_url: url}, %Job{} = job, status, attempts) do
     Task.start(fn ->
       Req.post(url, json: %{
         job_id: job.id,
         status: status,
         to: job.to,
-        attempts: attempts
+        attempts: attempts,
+        params: job.webhook_params
       })
     end)
   end
