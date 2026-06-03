@@ -125,7 +125,6 @@ defmodule MailProxy.ProxyServer do
   defp drain_queue(%__MODULE__{} = state) do
     Jobs.reset_stuck_sending(state.client_settings.account_id)
     slots = floor(state.current_tokens)
-    IO.puts("#{me()}: #{state.current_tokens} / #{state.max_tokens} / #{state.refill_rate}")
     if slots >= 1 do
       jobs = Jobs.fetch_pending(state.client_settings.account_id, slots)
 

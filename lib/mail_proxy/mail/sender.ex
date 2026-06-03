@@ -13,12 +13,14 @@ defmodule MailProxy.Mail.Sender do
   def send(%Job{} = job) do
     job = Repo.preload(job, [:account, :attachments])
     account = job.account
+    IO.puts("Trying to send #{job.id}")
 
     try do
       do_send(job, account)
     rescue
       e ->
         handle_failure(job, account, Exception.message(e))
+        IO.puts("Error sending #{job.id}")
         {:error, e}
     end
   end
@@ -61,6 +63,7 @@ defmodule MailProxy.Mail.Sender do
   defp fire_webhook(%Account{webhook_url: nil}, _job, _status, _attempts), do: :ok
   defp fire_webhook(%Account{webhook_url: url}, %Job{} = job, status, attempts) do
     Task.start(fn ->
+      IO.puts(" -> sending webhook to #{url}")
       Req.post(url, json: %{
         job_id: job.id,
         status: status,
