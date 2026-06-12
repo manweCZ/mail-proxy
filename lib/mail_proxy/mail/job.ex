@@ -16,6 +16,7 @@ defmodule MailProxy.Mail.Job do
     field :last_error, :string
     field :scheduled_at, :utc_datetime
     field :sent_at, :utc_datetime
+    field :webhook_params, :map
 
     belongs_to :account, MailProxy.Accounts.Account
     has_many :attachments, MailProxy.Mail.Attachment
@@ -23,6 +24,8 @@ defmodule MailProxy.Mail.Job do
     timestamps()
   end
 
+  @required ~w(account_id to subject body)a
+  @optional ~w(from cc bcc status attempts last_error scheduled_at sent_at webhook_params)a
   @required ~w(account_id to subject body to)a
   @optional ~w(from cc bcc status attempts last_error scheduled_at sent_at)a
 
