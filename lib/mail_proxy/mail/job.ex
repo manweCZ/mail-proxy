@@ -26,16 +26,21 @@ defmodule MailProxy.Mail.Job do
 
   @required ~w(account_id to subject body)a
   @optional ~w(from cc bcc status attempts last_error scheduled_at sent_at webhook_params)a
-  @required ~w(account_id to subject body to)a
-  @optional ~w(from cc bcc status attempts last_error scheduled_at sent_at)a
 
   def changeset(job, attrs) do
     job
     |> cast(attrs, @required ++ @optional)
     |> validate_required(@required)
     |> validate_inclusion(:status, @statuses)
-    |> validate_length(:to, min: 1)
+    |> validate_to_present()
     |> assoc_constraint(:account)
+  end
+
+  defp validate_to_present(changeset) do
+    case get_field(changeset, :to) do
+      [] -> add_error(changeset, :to, "can't be blank")
+      _ -> changeset
+    end
   end
 
   def status_transition_changeset(job, new_status, extra \\ %{}) do
