@@ -23,7 +23,7 @@ defmodule MailProxy.Mail.Job do
     timestamps()
   end
 
-  @required ~w(account_id to subject body)a
+  @required ~w(account_id to subject body to)a
   @optional ~w(from cc bcc status attempts last_error scheduled_at sent_at)a
 
   def changeset(job, attrs) do
