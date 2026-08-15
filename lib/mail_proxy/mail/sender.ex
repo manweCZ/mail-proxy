@@ -25,7 +25,7 @@ defmodule MailProxy.Mail.Sender do
     end
   end
 
-  defp do_send(job, account) do
+  defp do_send(%Job{} = job, account) do
     email =
       new()
       |> from(job.from)
@@ -35,6 +35,9 @@ defmodule MailProxy.Mail.Sender do
       |> subject(job.subject)
       |> html_body(job.body)
       |> add_attachments(job.attachments)
+
+    email =
+      Enum.reduce(job.additional_headers || %{}, email, fn {hk, hv}, acc -> header(acc, hk, hv) end)
 
     case Mailer.deliver(email, smtp_config(account)) do
       {:ok, _} ->
