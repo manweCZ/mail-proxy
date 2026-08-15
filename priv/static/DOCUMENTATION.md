@@ -47,6 +47,7 @@ Queue an email for delivery. The API returns immediately with a job ID; delivery
 | `bcc` | array of strings | No | BCC recipients |
 | `attachments` | array of objects | No | See attachment structure below |
 | `webhook_params` | object | No | Arbitrary key-value pairs echoed back in the webhook payload; use this to correlate the callback with your own identifiers |
+| `additional_headers` | object | No | Extra key-value pairs added as custom email headers (e.g. `{"X-Priority": "1"}`) |
 
 #### Attachment Object
 
@@ -253,6 +254,26 @@ When the job finishes, your `webhook_url` will receive a `params` object with th
 
 ---
 
+### Send with additional custom headers
+
+```php
+<?php
+
+$payload = [
+    'to'      => ['recipient@example.com'],
+    'subject' => 'Your order confirmation',
+    'body'    => '<p>Thank you for your order.</p>',
+    'additional_headers' => [
+        'X-Priority'   => '1',
+        'X-Order-Id'   => 'ORD-9981',
+    ],
+];
+```
+
+Each key-value pair in `additional_headers` is added as a raw email header on the outgoing message.
+
+---
+
 ### Send with a URL attachment (file downloaded at send time)
 
 ```php
@@ -296,7 +317,9 @@ class MailProxyClient
      *   from?: string,
      *   cc?: string[],
      *   bcc?: string[],
-     *   attachments?: array
+     *   attachments?: array,
+     *   webhook_params?: array,
+     *   additional_headers?: array
      * }
      * @return array{job_id: int}
      * @throws RuntimeException on HTTP error
